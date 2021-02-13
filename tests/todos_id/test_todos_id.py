@@ -26,7 +26,7 @@ class TestTodos(unittest.TestCase):
         response = requests.get('http://localhost:4567/todos/-1', headers={'Accept': 'application/json'})
         error_msg = response.json()
         # Compare expected error message for invalid ID
-        self.assertEqual(error_msg["errorMessages"][0], const.TODOS_DEFAULT_JSON_1)
+        self.assertEqual(error_msg["errorMessages"][0], "Could not find an instance with todos/-1")
         self.assertEqual(response.status_code, 404)
 
     def test_get_todos_id_xml(self):

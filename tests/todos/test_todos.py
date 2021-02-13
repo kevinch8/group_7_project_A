@@ -19,12 +19,14 @@ class TestTodos(unittest.TestCase):
         response = requests.get('http://localhost:4567/todos', headers={'Accept': 'application/json'})
         actual_todos_json = response.json()
         # Compare actual json from expected json
+        actual_todos_json["todos"].sort(key=lambda val: val["id"]) # Sort to keep data consistent
         self.assertEqual(actual_todos_json, const.TODOS_DEFAULT_JSON)
         self.assertEqual(response.status_code, 200)
 
     def test_get_todos_xml(self):
         response = requests.get('http://localhost:4567/todos', headers={'Accept': 'application/xml'})
         actual_todos_xml = ET.fromstring(response.content)
+        actual_todos_xml[:] = sorted(actual_todos_xml, key=lambda val: val.find("./id").text) # Sort to keep data consistent
         # Compare actual xml from expected xml
         expected_todos_xml = ET.fromstring(const.TODOS_DEFAULT_XML)
         self.assertTrue(elements_equal(actual_todos_xml, expected_todos_xml))
