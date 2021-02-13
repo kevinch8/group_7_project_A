@@ -1,9 +1,9 @@
 import requests
 import subprocess
 import unittest
-import const
+from tests.todos import const
 import xml.etree.ElementTree as ET
-from helper_functions import elements_equal
+from tests.helper_functions import elements_equal
 import json
 
 class TestTodos(unittest.TestCase):

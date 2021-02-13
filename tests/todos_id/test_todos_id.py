@@ -1,9 +1,9 @@
 import requests
 import subprocess
 import unittest
-import const
+from tests.todos_id import const
 import xml.etree.ElementTree as ET
-from helper_functions import elements_equal
+from tests.helper_functions import elements_equal
 import json
 
 class TestTodos(unittest.TestCase):
@@ -17,12 +17,12 @@ class TestTodos(unittest.TestCase):
 
     def test_get_todos_id_json(self):
         response = requests.get('http://localhost:4567/todos/1', headers={'Accept': 'application/json'})
-        actual_todo_json_1 = response.json()
+        actual_todo_json_1 = response.json()['todos']
         # Compare expected default json with id 1
         self.assertEqual(actual_todo_json_1[0], const.TODOS_DEFAULT_JSON_1)
         self.assertEqual(response.status_code, 200)
 
-     def test_get_todos_invalid_id_json(self):
+    def test_get_todos_invalid_id_json(self):
         response = requests.get('http://localhost:4567/todos/-1', headers={'Accept': 'application/json'})
         error_msg = response.json()
         # Compare expected error message for invalid ID
