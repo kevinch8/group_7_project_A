@@ -6,7 +6,7 @@ class TestTodos(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.process = subprocess.Popen(['java', '-jar', '../../runTodoManagerRestAPI-1.5.5.jar'])
+        cls.process = subprocess.Popen(['java', '-jar', 'runTodoManagerRestAPI-1.5.5.jar'])
 
     def test_1(self):
 
