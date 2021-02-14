@@ -22,7 +22,7 @@ class TestTodos(unittest.TestCase):
         actual_todos_json["todos"].sort(key=lambda val: val["id"]) # Sort to keep data consistent
         self.assertEqual(actual_todos_json, const.TODOS_DEFAULT_JSON)
         self.assertEqual(response.status_code, 200)
-
+    
     def test_get_todos_xml(self):
         response = requests.get('http://localhost:4567/todos', headers={'Accept': 'application/xml'})
         actual_todos_xml = ET.fromstring(response.content)

@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from tests.helper_functions import elements_equal
 import json
 
-class TestTodos(unittest.TestCase):
+class TestTodosId(unittest.TestCase):
 
     def setUp(self):
         self.active_todos = []
@@ -43,94 +43,196 @@ class TestTodos(unittest.TestCase):
         self.assertEqual(response.headers['Content-Type'], 'application/json')
         self.assertEqual(response.status_code, 200)
 
+    def test_head_todos_invalid_id_json(self):
+        response = requests.head('http://localhost:4567/todos/-1', headers={'Accept': 'application/json'})
+        self.assertEqual(response.status_code, 404)
+
     def test_head_todos_id_xml(self):
         response = requests.head('http://localhost:4567/todos/1', headers={'Accept': 'application/xml'})
         # Check if Content-Type in header is application/xml
         self.assertEqual(response.headers['Content-Type'], 'application/xml')
         self.assertEqual(response.status_code, 200)
 
-    # def test_post_todos_id_json(self):
-    #     sample_todo = {
-    #         "title": "Test Todo ID",
-    #         "doneStatus": False,
-    #         "description": ""
-    #         }
-    #     response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=sample_todo)
-    #     actual_sample_todo = response.json()
-    #     # Check if what was created matches the title we want
-    #     self.assertEqual(sample_todo["title"], actual_sample_todo["title"])
-    #     self.assertEqual(response.status_code, 201)
-    #     self.active_todos.append(actual_sample_todo["id"])
+    def test_post_todos_id_json(self):
+        # Create a json to edit
+        modifiable_todo = {
+            "title": "Test Todo To Edit",
+            "doneStatus": False,
+            "description": ""
+            }
+        response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=modifiable_todo)
+        modifiable_todo_actual = response.json()
+        # Check if what was created matches the title we want
+        self.assertEqual(modifiable_todo["title"], modifiable_todo_actual["title"])
+        self.assertEqual(response.status_code, 201)
+        self.active_todos.append(modifiable_todo_actual["id"])
 
-    #     response = requests.get('http://localhost:4567/todos/' + actual_sample_todo['id'], headers={'Accept': 'application/json'})
-    #     obtained_todo = response.json()['todos'][0]
-    #     # Check if created todo matches what we have
-    #     self.assertEqual(actual_sample_todo, obtained_todo)
-    #     self.assertEqual(response.status_code, 200)
+        # Check if json actually exists
+        response = requests.get('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/json'})
+        obtained_todo = response.json()['todos'][0]
+        # Check if created todo matches what we have
+        self.assertEqual(modifiable_todo_actual, obtained_todo)
+        self.assertEqual(response.status_code, 200)
 
-    # def test_post_todos_xml(self):
-    #     sample_todo = {
-    #         "title": "Test Todo",
-    #         "doneStatus": False,
-    #         "description": ""
-    #         }
-    #     response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/xml'}, json=sample_todo)
-    #     actual_sample_todo = ET.fromstring(response.content)
-    #     # Check if what was created matches the title we want
-    #     self.assertEqual(sample_todo["title"], actual_sample_todo.find("./title").text)
-    #     self.assertEqual(response.status_code, 201)
-    #     self.active_todos.append(actual_sample_todo.find("./id").text)
+        # Modify the newly created json
+        modified_todo = {
+            "title": "Edited Todo",
+            "doneStatus": False,
+            "description": ""
+        }
+        response = requests.post('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/json'}, json=modified_todo)
+        modified_todo_actual = response.json()
+        # Check if new edited has the right title
+        self.assertEqual(modified_todo_actual["title"], modified_todo["title"])
+        self.assertEqual(response.status_code, 200)
 
-    #     response = requests.get('http://localhost:4567/todos/' + actual_sample_todo.find("./id").text, headers={'Accept': 'application/xml'})
-    #     obtained_todo = ET.fromstring(response.content)[0]
-    #     # Check if created todo matches what we have
-    #     self.assertTrue(elements_equal(actual_sample_todo, obtained_todo))
-    #     self.assertEqual(response.status_code, 200)
+    def test_post_todos_xml(self):
+        # Create a json to edit
+        modifiable_todo = {
+            "title": "Test Todo To Edit",
+            "doneStatus": False,
+            "description": ""
+            }
+        response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=modifiable_todo)
+        modifiable_todo_actual = response.json()
+        # Check if what was created matches the title we want
+        self.assertEqual(modifiable_todo["title"], modifiable_todo_actual["title"])
+        self.assertEqual(response.status_code, 201)
+        self.active_todos.append(modifiable_todo_actual["id"])
 
-    # def test_post_todos_json_id_gap(self):
-    #     # Following test shows bug -> empty body when creating todos lead to GAPS in ID increments.
-    #     # Begin by creating a marker todo (to determine initial ID)
-    #     sample_todo = {
-    #         "title": "Test Todo",
-    #         "doneStatus": False,
-    #         "description": ""
-    #         }
-    #     response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=sample_todo)
-    #     initial_sample_todo = response.json()
-    #     self.assertEqual(response.status_code, 201)
-    #     initial_id = int(initial_sample_todo["id"])
-    #     self.active_todos.append(initial_sample_todo["id"])
+        # Check if json actually exists
+        response = requests.get('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/json'})
+        obtained_todo = response.json()['todos'][0]
+        # Check if created todo matches what we have
+        self.assertEqual(modifiable_todo_actual, obtained_todo)
+        self.assertEqual(response.status_code, 200)
 
-    #     for i in range(4): # Run loop 4 times to observe ID gap of 5
-    #         response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'})
-    #         self.assertEqual(response.status_code, 400)
-    #         self.assertEqual(response.json()["errorMessages"][0], "title : field is mandatory")
-        
-    #     # Create identical todo to obtain a new id
-    #     response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=sample_todo)
-    #     final_sample_todo = response.json()
-    #     self.assertEqual(response.status_code, 201)
-    #     final_id = int(final_sample_todo["id"])
-    #     self.active_todos.append(final_sample_todo["id"])
+        # Modify the newly created json
+        modified_todo = {
+            "title": "Edited Todo",
+            "doneStatus": False,
+            "description": ""
+        }
+        # Test for XML payload
+        response = requests.post('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/xml'}, json=modified_todo)
+        modified_todo_actual =  ET.fromstring(response.content)
+        # Check if new edited has the right title
+        self.assertEqual(modified_todo_actual.find("./title").text , modified_todo["title"])
+        self.assertEqual(response.status_code, 200)
 
-    #     # Check if the next id created is incremented by 5
-    #     self.assertEqual(final_id-initial_id, 5)
+    def test_post_todos_id_empty(self):
+        # This shows the unintended behavior of giving us the contend of todo id=1, (the get method returns todos with 1 todo)
+        response = requests.post('http://localhost:4567/todos/1', headers={'Accept': 'application/json'})
+        actual_todo_json_1 = response.json()
+        # Compare expected default json with id 1
+        self.assertEqual(actual_todo_json_1, const.TODOS_DEFAULT_JSON_1)
+        self.assertEqual(response.status_code, 200)
 
-    # def test_post_todos_malformed_json(self):
-    #     malformed_todo = {
-    #         "fake_attribute": "fake_value"
-    #         }
-    #     response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=malformed_todo)
-    #     self.assertEqual(response.status_code, 400)
-    #     error_msg = response.json()["errorMessages"][0]
-    #     self.assertEqual(error_msg, "Could not find field: fake_attribute")
+    def test_put_todos_id_json(self):
+        # Create a json to edit
+        modifiable_todo = {
+            "title": "Test Todo To Edit",
+            "doneStatus": False,
+            "description": ""
+            }
+        response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=modifiable_todo)
+        modifiable_todo_actual = response.json()
+        # Check if what was created matches the title we want
+        self.assertEqual(modifiable_todo["title"], modifiable_todo_actual["title"])
+        self.assertEqual(response.status_code, 201)
+        self.active_todos.append(modifiable_todo_actual["id"])
 
-    # def test_post_todo_malformed_xml(self):
-    #     malformed_todo = "<todo><fakeField>fake text</fakeField></todo>"
-    #     response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/xml', 'Content-Type': 'application/xml'}, data=malformed_todo)
-    #     self.assertEqual(response.status_code, 400)
-    #     error_msg = ET.fromstring(response.content).find("./errorMessage").text
-    #     self.assertEqual(error_msg, "Could not find field: fakeField")
+        # Check if json actually exists
+        response = requests.get('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/json'})
+        obtained_todo = response.json()['todos'][0]
+        # Check if created todo matches what we have
+        self.assertEqual(modifiable_todo_actual, obtained_todo)
+        self.assertEqual(response.status_code, 200)
+
+        # Modify the newly created json with PUT method
+        modified_todo = {
+            "title": "Edited Todo",
+            "doneStatus": False,
+            "description": ""
+        }
+        response = requests.put('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/json'}, json=modified_todo)
+        modified_todo_actual = response.json()
+        # Check if new edited has the right title
+        self.assertEqual(modified_todo_actual["title"], modified_todo["title"])
+        self.assertEqual(response.status_code, 200)
+
+    def test_put_todos_xml(self):
+        # Create a json to edit
+        modifiable_todo = {
+            "title": "Test Todo To Edit",
+            "doneStatus": False,
+            "description": ""
+            }
+        response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=modifiable_todo)
+        modifiable_todo_actual = response.json()
+        # Check if what was created matches the title we want
+        self.assertEqual(modifiable_todo["title"], modifiable_todo_actual["title"])
+        self.assertEqual(response.status_code, 201)
+        self.active_todos.append(modifiable_todo_actual["id"])
+
+        # Check if json actually exists
+        response = requests.get('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/json'})
+        obtained_todo = response.json()['todos'][0]
+        # Check if created todo matches what we have
+        self.assertEqual(modifiable_todo_actual, obtained_todo)
+        self.assertEqual(response.status_code, 200)
+
+        # Modify the newly created json
+        modified_todo = {
+            "title": "Edited Todo",
+            "doneStatus": False,
+            "description": ""
+        }
+        # Test for XML payload with PUT method
+        response = requests.put('http://localhost:4567/todos/' + modifiable_todo_actual["id"], headers={'Accept': 'application/xml'}, json=modified_todo)
+        modified_todo_actual =  ET.fromstring(response.content)
+        # Check if new edited has the right title
+        self.assertEqual(modified_todo_actual.find("./title").text , modified_todo["title"])
+        self.assertEqual(response.status_code, 200)
+
+    def test_put_todos_id_empty(self):
+        # This shows that unlike post, this shows the proper error message.
+        response = requests.put('http://localhost:4567/todos/1', headers={'Accept': 'application/json'})
+        error_message_json = response.json()
+        # See if expected error message is received
+        self.assertEqual(error_message_json["errorMessages"][0], "title : field is mandatory")
+        self.assertEqual(response.status_code, 400)
+
+    def test_delete_todos_id_json(self):
+        # Create a todo to delete
+        todo_to_delete = {
+            "title": "Test Todo To DELETE",
+            "doneStatus": False,
+            "description": ""
+            }
+        response = requests.post('http://localhost:4567/todos', headers={'Accept': 'application/json'}, json=todo_to_delete)
+        actual_todo_to_delete = response.json()
+        # Check if what was created matches the title we want
+        self.assertEqual(actual_todo_to_delete["title"], todo_to_delete["title"])
+        self.assertEqual(response.status_code, 201)
+        self.active_todos.append(actual_todo_to_delete["id"])
+
+        # Delete the todo
+        response = requests.delete('http://localhost:4567/todos/' + actual_todo_to_delete["id"] , headers={'Accept': 'application/json'})
+        self.assertEqual(response.status_code, 200)
+
+        # Check if todo exists
+        response = requests.get('http://localhost:4567/todos/' + actual_todo_to_delete["id"], headers={'Accept': 'application/json'})
+        error_message = response.json()
+        self.assertEqual(error_message["errorMessages"][0], "Could not find an instance with todos/" + actual_todo_to_delete["id"])
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_todos_invalid_id_json(self):
+        # Delete the todo
+        response = requests.delete('http://localhost:4567/todos/-1', headers={'Accept': 'application/json'})
+        error_msg = response.json()["errorMessages"][0]
+        self.assertEqual(error_msg ,"Could not find any instances with todos/-1")
+        self.assertEqual(response.status_code, 404)
 
     
 
