@@ -41,17 +41,17 @@ class TestTodosIdTasksofId(unittest.TestCase):
 
         response = requests.get('http://localhost:4567/todos/'+ actual_tasksof_todo["id"] + '/tasksof', headers={'Accept': 'application/json'})
         empty_projects = response.json()
-        self.assertFalse(empty_projects) # Check if no projects is associated to current todo
+        self.assertFalse(empty_projects['projects']) # Check if no projects is associated to current todo
         self.assertEqual(response.status_code, 200)
         
     def test_delete_todos_id_tasksof_invalid_todo_but_valid_project(self):
-        response = requests.post('http://localhost:4567/todos/-1/tasksof/1')
+        response = requests.delete('http://localhost:4567/todos/-1/tasksof/1')
         error_msg = response.json()["errorMessages"][0]
         self.assertEqual(error_msg, "java.lang.NullPointerException")
         self.assertEqual(response.status_code, 400)
 
     def test_delete_todos_id_tasksof_valid_todo_invalid_project(self):
-        response = requests.post('http://localhost:4567/todos/1/tasksof/-1')
+        response = requests.delete('http://localhost:4567/todos/1/tasksof/-1')
         error_msg = response.json()["errorMessages"][0]
         self.assertEqual(error_msg, "Could not find any instances with todos/1/tasksof/-1")
         self.assertEqual(response.status_code, 404)
