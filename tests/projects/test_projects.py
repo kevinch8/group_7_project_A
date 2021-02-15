@@ -20,14 +20,27 @@ class TestProjects(unittest.TestCase):
         project_json = response.json()
         # Compare response with expected json
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(project_json, const.DEFAULT_PROJECT_JSON)
+        self.assertIn(project_json, [const.DEFAULT_PROJECT_JSON_V1, const.DEFAULT_PROJECT_JSON_V2])
 
     def test_get_projects_xml(self):
         response = requests.get('http://localhost:4567/projects', headers={'Accept': 'application/xml'})
         # Compare response with expected xml
         project_xml = ET.fromstring(response.content)
-        expected_project_xml = ET.fromstring(const.DEFAULT_PROJECT_XML)
-        self.assertTrue(elements_equal(project_xml, expected_project_xml))
+        expected_project_xml_v1 = ET.fromstring(const.DEFAULT_PROJECT_XML_V1)
+        expected_project_xml_v2 = ET.fromstring(const.DEFAULT_PROJECT_XML_V2)
+        self.assertTrue(elements_equal(project_xml, expected_project_xml_v1) or elements_equal(project_xml, expected_project_xml_v2))
+        self.assertEqual(response.status_code, 200)
+
+    def test_head_projects_json(self):
+        response = requests.head('http://localhost:4567/projects', headers={'Accept': 'application/json'})
+        # Check if Content-Type in header is application/json
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+        self.assertEqual(response.status_code, 200)
+
+    def test_head_projects_xml(self):
+        response = requests.head('http://localhost:4567/projects', headers={'Accept': 'application/xml'})
+        # Check if Content-Type in header is application/xml
+        self.assertEqual(response.headers['Content-Type'], 'application/xml')
         self.assertEqual(response.status_code, 200)
 
     def test_create_project_json(self):
@@ -77,8 +90,28 @@ class TestProjects(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(elements_equal(project_xml, obtained_project))
 
-    # def test_head_project(self):
-    #     response = requests.head('http://localhost:4567/projects')
-    #     self.assertEqual(response.text, 2)
-    #     # Use this method to test content-type (json or xml)
+    def test_create_project_wrong_field_json(self):
+        project_data = {
+            "title": "School Work",
+            "x": False,
+            "active": False,
+            "description": "Work on assignments."
+        }
+        response = requests.post('http://localhost:4567/projects', json = project_data, headers={'Accept': 'application/json'})
+        self.assertEqual(response.status_code, 400)
+        error_json = response.json()
+        # Check if error message is returned
+        self.assertEqual(error_json['errorMessages'][0], "Could not find field: x")
 
+    def test_create_project_wrong_field_xml(self):
+        project_data = {
+            "title": "School Work",
+            "x": False,
+            "active": False,
+            "description": "Work on assignments."
+        }
+        response = requests.post('http://localhost:4567/projects', json = project_data, headers={'Accept': 'application/xml'})
+        self.assertEqual(response.status_code, 400)
+        error_xml = ET.fromstring(response.content)
+        # Check if error message is returned
+        self.assertEqual(error_xml.find("./errorMessage").text, "Could not find field: x")
