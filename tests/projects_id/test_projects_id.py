@@ -2,11 +2,11 @@ import requests
 import subprocess
 import unittest
 import json
-from tests.projects import const
+from tests.projects_id import const
 import xml.etree.ElementTree as ET
 from tests.helper_functions import elements_equal
 
-class TestProjects(unittest.TestCase):
+class TestProjectsId(unittest.TestCase):
 
     def setUp(self):
         self.active_projects = []
