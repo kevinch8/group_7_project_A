@@ -25,13 +25,13 @@ class TestProjectsIdCategories(unittest.TestCase):
     def test_get_projects_id_categories_xml(self):
         response = requests.get('http://localhost:4567/projects/1/categories', headers={'Accept': 'application/xml'})
         categories_xml = ET.fromstring(response.content)
-        # Compare response with expected json
+        # Compare response with expected xml
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(categories_xml.find("./categories"))
 
     @unittest.expectedFailure
     def test_get_projects_id_categories_invalid_id_bug(self):
-        # This test should return an error status code as it's requesting for an invalid project id
+        # ERROR: This test should return an error status code as it's requesting for an invalid project id
         response = requests.get('http://localhost:4567/projects/-1/categories', headers={'Accept': 'application/json'})
         categories_json = response.json()
         # Compare response with expected json
